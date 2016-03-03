@@ -1,2 +1,2 @@
-del jsvsvreader/JSCSVReader.js
-uglifyjs src/JSCSVReader.js --compress -o jsvsvreader/JSCSVReader.js
+del jsvsvreader/csvtojson.js
+uglifyjs src/csvtojson.js --compress -o csvtojson/csvtojson.js
