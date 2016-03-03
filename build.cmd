@@ -1,2 +1,4 @@
-del jsvsvreader/csvjson.js
-uglifyjs src/csvjson.js --compress -o csvjson/csvjson.js
+del csvjson.js
+del csvjson.min.js
+copy src\csvjson.js csvjson.js
+uglifyjs csvjson.js --compress -o csvjson.min.js
