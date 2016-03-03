@@ -1,29 +1,29 @@
 /*
- ** This file is part of JSCSVReader.
+ ** This file is part of csvtojson.
  **
- ** JSCSVReader is free software: you can redistribute it and/or modify
+ ** csvtojson is free software: you can redistribute it and/or modify
  ** it under the terms of the GNU General Public License as published by
  ** the Free Software Foundation, either version 3 of the License, or
  ** (at your option) any later version.
  **
- ** JSCSVReader is distributed in the hope that it will be useful,
+ ** csvtojson is distributed in the hope that it will be useful,
  ** but WITHOUT ANY WARRANTY; without even the implied warranty of
  ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  ** GNU General Public License for more details.
  **
  ** You should have received a copy of the GNU General Public License
- ** along with JSCSVReader. If not, see <http://www.gnu.org/licenses/>.
+ ** along with csvtojson. If not, see <http://www.gnu.org/licenses/>.
  **
- ** Copyright (C) 2016 JSCSVReader - Donato Pirozzi (donatopirozzi@gmail.com)
+ ** Copyright (C) 2016 csvtojson - Donato Pirozzi (donatopirozzi@gmail.com)
  ** Distributed under the GNU GPL v3. For full terms see the file LICENSE.
  ** License: http://www.gnu.org/licenses/gpl.html GPL version 3 or higher
  **/
 
 
-function JSCSVReader() {
+function csvtojson() {
 };//EndConstructor.
 
-JSCSVReader.Split = function(line, COL_SEPARATOR) {
+csvtojson.Split = function(line, COL_SEPARATOR) {
     //var COL_SEPARATOR = typeof colseparator == 'undefined' ? ',' : colseparator;
 
     if (COL_SEPARATOR == null || typeof COL_SEPARATOR == 'undefined')
@@ -59,12 +59,12 @@ JSCSVReader.Split = function(line, COL_SEPARATOR) {
     return cells;
 };//EndFunction.
 
-JSCSVReader.RecogniseCSVSeparator = function(rows) {
+csvtojson.RecogniseCSVSeparator = function(rows) {
 
     var tryToSplit = function (rows, colsep) {
         var numCols = -1;
         for (var i=1; i<rows.length && i<10; i++) {
-            var cells = JSCSVReader.Split(rows[i], colsep);
+            var cells = csvtojson.Split(rows[i], colsep);
             var rowNumCols = cells.length;
 
             if (numCols == -1 && rowNumCols > 1) {
@@ -91,7 +91,7 @@ JSCSVReader.RecogniseCSVSeparator = function(rows) {
     throw "Cannot infer the CSV column separator.";
 };//EndFunction.
 
-JSCSVReader.prototype = (function() {
+csvtojson.prototype = (function() {
 
     var _processHeader = function(header, colseparator) {
         if (colseparator == null || typeof colseparator == 'undefined')
@@ -111,7 +111,7 @@ JSCSVReader.prototype = (function() {
     };//EndFunction.
 
     return {
-        constructor: JSCSVReader,
+        constructor: csvtojson,
 
         /**
          * Read the CSV string and generate an object with two arrays:
@@ -124,7 +124,7 @@ JSCSVReader.prototype = (function() {
             var fields = null;
 
             var rows = csvContent.split(/\r\n?/);
-            var separator = JSCSVReader.RecogniseCSVSeparator(rows);
+            var separator = csvtojson.RecogniseCSVSeparator(rows);
 
             //First row is the header.
             fields = _processHeader(rows[0], separator);
@@ -132,7 +132,7 @@ JSCSVReader.prototype = (function() {
             //Loop through the dataset's rows.
             for (var i=1; i<rows.length; i++) {
                 var row = rows[i];
-                var values = JSCSVReader.Split(row, separator);
+                var values = csvtojson.Split(row, separator);
                 var jsonRow = [];
 
                 for (var j=0; j<values.length; j++) {
