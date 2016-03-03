@@ -20,10 +20,10 @@
  **/
 
 
-function csvtojson() {
+function csvjson() {
 };//EndConstructor.
 
-csvtojson.Split = function(line, COL_SEPARATOR) {
+csvjson.Split = function(line, COL_SEPARATOR) {
     //var COL_SEPARATOR = typeof colseparator == 'undefined' ? ',' : colseparator;
 
     if (COL_SEPARATOR == null || typeof COL_SEPARATOR == 'undefined')
@@ -59,12 +59,12 @@ csvtojson.Split = function(line, COL_SEPARATOR) {
     return cells;
 };//EndFunction.
 
-csvtojson.RecogniseCSVSeparator = function(rows) {
+csvjson.RecogniseCSVSeparator = function(rows) {
 
     var tryToSplit = function (rows, colsep) {
         var numCols = -1;
         for (var i=1; i<rows.length && i<10; i++) {
-            var cells = csvtojson.Split(rows[i], colsep);
+            var cells = csvjson.Split(rows[i], colsep);
             var rowNumCols = cells.length;
 
             if (numCols == -1 && rowNumCols > 1) {
@@ -91,7 +91,7 @@ csvtojson.RecogniseCSVSeparator = function(rows) {
     throw "Cannot infer the CSV column separator.";
 };//EndFunction.
 
-csvtojson.prototype = (function() {
+csvjson.prototype = (function() {
 
     var _processHeader = function(header, colseparator) {
         if (colseparator == null || typeof colseparator == 'undefined')
@@ -111,7 +111,7 @@ csvtojson.prototype = (function() {
     };//EndFunction.
 
     return {
-        constructor: csvtojson,
+        constructor: csvjson,
 
         /**
          * Read the CSV string and generate an object with two arrays:
@@ -124,7 +124,7 @@ csvtojson.prototype = (function() {
             var fields = null;
 
             var rows = csvContent.split(/\r\n?/);
-            var separator = csvtojson.RecogniseCSVSeparator(rows);
+            var separator = csvjson.RecogniseCSVSeparator(rows);
 
             //First row is the header.
             fields = _processHeader(rows[0], separator);
@@ -132,7 +132,7 @@ csvtojson.prototype = (function() {
             //Loop through the dataset's rows.
             for (var i=1; i<rows.length; i++) {
                 var row = rows[i];
-                var values = csvtojson.Split(row, separator);
+                var values = csvjson.Split(row, separator);
                 var jsonRow = [];
 
                 for (var j=0; j<values.length; j++) {
