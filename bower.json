@@ -1,12 +1,12 @@
 {
   "name": "csvjson",
   "version": "0.1",
-  "homepage": "https://github.com/donpir/JSCSVReader",
+  "homepage": "https://github.com/donpir/csvjson",
   "authors": [
     "'Donato Pirozzi <'donatopirozzi@gmail.com'>"
   ],
   "description": "A JavaScript library to parse csv files and transform the content in JSON Format",
-  "main": "jsdatachecker/jsdatachecker.js",
+  "main": "csvjson/csvjson.js",
   "license": "GPL",
   "ignore": [
     "**/.*",
