@@ -1,0 +1,22 @@
+{
+  "name": "JSCSVReader",
+  "version": "0.1",
+  "homepage": "https://github.com/donpir/JSCSVReader",
+  "authors": [
+    "'Donato Pirozzi <'donatopirozzi@gmail.com'>"
+  ],
+  "description": "A JavaScript library to parse csv files and transform the content in JSON Format",
+  "main": "jsdatachecker/jsdatachecker.js",
+  "license": "GPL",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "qunit": "~1.22.0"
+  },
+  "private": true
+}
