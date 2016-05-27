@@ -133,7 +133,7 @@ csvjson.prototype = (function() {
             for (var i=1; i<rows.length; i++) {
                 var row = rows[i];
                 var values = csvjson.Split(row, separator);
-                var jsonRow = [];
+                var jsonRow = {};
 
                 for (var j=0; j<values.length; j++) {
                     var value = values[j];

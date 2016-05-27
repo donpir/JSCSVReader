@@ -50,6 +50,7 @@ function runTests(textualContent) {
         var reader = new csvjson();
         var jsonDataset = reader.read(dataset);
 
+        debugger;
     });
 
 }//EndTestSuite.
