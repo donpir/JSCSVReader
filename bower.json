@@ -6,7 +6,7 @@
     "'Donato Pirozzi <'donatopirozzi@gmail.com'>"
   ],
   "description": "A JavaScript library to parse csv files and transform the content in JSON Format",
-  "main": "csvjson/csvjson.js",
+  "main": "csvjson.js",
   "license": "GPL",
   "ignore": [
     "**/.*",
