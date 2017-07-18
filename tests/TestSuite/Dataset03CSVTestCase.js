@@ -37,20 +37,14 @@ function runTests(textualContent) {
     QUnit.test( "Dataset03", function( assert ) {
         assert.notEqual(dataset, null, "Dataset correctly loaded.");
 
-        //Infer the SEPARATOR.
-        try {
-            var rows = dataset.split(/\r\n?/);
-            var separator = csvjson.RecogniseCSVSeparator(rows);
-            assert.equal(separator, ';', "CSV Separator ; recognized");
-        } catch (err) {
-            assert.failed;
-        }
-
         //Read the CSV Content.
         var reader = new csvjson();
         var jsonDataset = reader.read(dataset);
 
-        debugger;
+        assert.notEqual(jsonDataset, null, "Dataset correctly read.");
+
+        assert.equal(jsonDataset.fields.length, 6, "The dataset has the expected number of columns.");
+        assert.equal(jsonDataset.records.length, 46, "The dataset has the expected number of rows.");
     });
 
 }//EndTestSuite.

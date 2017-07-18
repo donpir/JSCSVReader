@@ -29,44 +29,26 @@ var httpGetAsync = function(theUrl, callback) {
     xhttp.send(null);
 };//EndFunction.
 
-httpGetAsync("../datasets/dataset02.csv", runTests);
+httpGetAsync("../datasets/dataset05.csv", runTests);
 
 function runTests(textualContent) {
-    var dataset = textualContent
+    var dataset = textualContent;
 
-    QUnit.test("csvjson Split TestCase", function(assert) {
-        var line = "\"2,23\",\"5,5\"";
-        var values = csvjson.Split(line, ',');
-        assert.equal(values.length, 2, "The line has the correct number of values");
-
-        var line = "Hello,\"2,23\",\"5,5\"";
-        var values = csvjson.Split(line, ',');
-        assert.equal(values.length, 3, "The line has the correct number of values");
-    });
-
-    QUnit.test("testing repeated quotes", function(assert) {
-        var line = "\"7\"\"8\"";
-        var values = csvjson.Split(line, ';');
-        assert.equal(values.length, 1, "The line has the correct number of values");
-    });
-
-    QUnit.test("testing terminating with ;", function(assert) {
-        var line = "\"7\"\"8\";";
-        var values = csvjson.Split(line, ';');
-        assert.equal(values.length, 1, "The line has the correct number of values");
-    });
-
-    QUnit.test( "Dataset02", function( assert ) {
+    QUnit.test( "dataset05", function( assert ) {
         assert.notEqual(dataset, null, "Dataset correctly loaded.");
 
         //Read the CSV Content.
         var reader = new csvjson();
         var jsonDataset = reader.read(dataset);
 
-        assert.notEqual(jsonDataset, null, "Dataset correctly read.");
+        debugger;
 
-        assert.equal(jsonDataset.fields.length, 19, "The dataset has the expected number of columns.");
-        assert.equal(jsonDataset.records.length, 14, "The dataset has the expected number of rows.");
+        assert.notEqual(jsonDataset, null, "Dataset correctly read.");
+        assert.equal(jsonDataset.fields.length, 7, "The dataset has the expected number of columns.");
+        assert.equal(jsonDataset.records.length, 155, "The dataset has the expected number of rows.");
+
+
+        debugger;
     });
 
 }//EndTestSuite.

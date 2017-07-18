@@ -23,9 +23,15 @@
 function csvjson() {
 };//EndConstructor.
 
+csvjson.EXP_ROW_SEPARATOR = /\r\n|\r|\n/g;
+
+//KEYS.
+csvjson.ERR_EMPTY_HEADER = 'ERR_EMPTY_HEADER';
+csvjson.WARN_EMPTY_ROWS = 'WARN_EMPTY_ROWS';
+
 csvjson.Split = function(line, COL_SEPARATOR) {
     //var COL_SEPARATOR = typeof colseparator == 'undefined' ? ',' : colseparator;
-
+    var VAL_SEPARATOR = '"';
     if (COL_SEPARATOR == null || typeof COL_SEPARATOR == 'undefined')
         throw "CSV Column separator is null.";
 
@@ -36,12 +42,13 @@ csvjson.Split = function(line, COL_SEPARATOR) {
 
     var cells = [];
     var value = "";
-    var status = STATE.INIT;
+    var status = STATE.READVAL;
+    var counterValSeparators = 0;
 
     for (var i=0; i<line.length; i++) {
         var c = line[i];
 
-        switch(c) {
+        /*switch(c) {
             case "\"":
                 if (status == STATE.INIT)           status = STATE.READVAL, value = "";
                 else if (status == STATE.READVAL)   status = STATE.INIT, cells.push(value), value = null;
@@ -53,8 +60,30 @@ csvjson.Split = function(line, COL_SEPARATOR) {
             default:
                 status: STATE.READVAL, value += c;
                 break;
+        }//EndSwitch.*/
+
+        switch (c) {
+            case VAL_SEPARATOR:
+                counterValSeparators++;
+                value += c;
+                break;
+            case COL_SEPARATOR:
+                if (counterValSeparators % 2 != 0) //Value not terminated.
+                    value += c;
+                else {
+                    cells.push(value);
+                    counterValSeparators = 0;
+                    value = "";
+                }
+                break;
+            default:
+                status = STATE.READVAL, value += c;
+                break;
         }//EndSwitch.
     }//EndFor.
+
+    if (value.trim().length > 0)
+        cells.push(value);
 
     return cells;
 };//EndFunction.
@@ -64,8 +93,12 @@ csvjson.RecogniseCSVSeparator = function(rows) {
     var tryToSplit = function (rows, colsep) {
         var numCols = -1;
         for (var i=1; i<rows.length && i<10; i++) {
-            var cells = csvjson.Split(rows[i], colsep);
+            var _row = rows[i].trim();
+            var cells = csvjson.Split(_row, colsep);
             var rowNumCols = cells.length;
+
+            if (_row.trim().lastIndexOf(colsep) === _row.length-1)
+                rowNumCols++;
 
             if (numCols == -1 && rowNumCols > 1) {
                 numCols = rowNumCols;
@@ -119,18 +152,31 @@ csvjson.prototype = (function() {
          * @param csvContent
          * @returns {{fields: *, records: Array}}
          */
-        read: function(csvContent) {
+        read: function(csvContent, rowSeparator) {
             var records = [];
             var fields = null;
+            var startIndex = 0;
 
-            var rows = csvContent.split(/\r\n?/);
+            //Initializations.
+            var errors = {};
+            var warnings = { };
+            warnings[csvjson.WARN_EMPTY_ROWS] = 0;
+
+            if (typeof rowSeparator === 'undefined')
+                rowSeparator = csvjson.EXP_ROW_SEPARATOR;
+
+            var rows = csvContent.split(rowSeparator);
             var separator = csvjson.RecogniseCSVSeparator(rows);
 
             //First row is the header.
-            fields = _processHeader(rows[0], separator);
+            while (rows[startIndex].trim().length == 0) {
+                errors[csvjson.ERR_EMPTY_HEADER]++;
+                startIndex++;
+            }
+            fields = _processHeader(rows[startIndex], separator);
 
             //Loop through the dataset's rows.
-            for (var i=1; i<rows.length; i++) {
+            for (var i=startIndex+1; i<rows.length; i++) {
                 var row = rows[i];
                 var values = csvjson.Split(row, separator);
                 var jsonRow = {};
@@ -148,7 +194,7 @@ csvjson.prototype = (function() {
                 records.push(jsonRow);
             }//EndFor.
 
-            return { fields: fields, records: records };
+            return { fields: fields, records: records, errors: errors, warnings: warnings };
         }//EndFunction.
     };
 
