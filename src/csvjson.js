@@ -1,5 +1,5 @@
 /*
- ** This file is part of csvtojson.
+ ** This file is part of csvjson.
  **
  ** csvtojson is free software: you can redistribute it and/or modify
  ** it under the terms of the GNU General Public License as published by
@@ -17,8 +17,10 @@
  ** Copyright (C) 2016 csvtojson - Donato Pirozzi (donatopirozzi@gmail.com)
  ** Distributed under the GNU GPL v3. For full terms see the file LICENSE.
  ** License: http://www.gnu.org/licenses/gpl.html GPL version 3 or higher
+ **
+ ** LIST OF RELEASES:
+ **     csvjson v0.1.3 - 21 July 2017
  **/
-
 
 function csvjson() {
 };//EndConstructor.
@@ -26,6 +28,7 @@ function csvjson() {
 csvjson.EXP_ROW_SEPARATOR = /\r\n|\r|\n/g;
 
 //KEYS.
+csvjson.ERR_COUNTER = 'ERR_COUNTER';
 csvjson.ERR_EMPTY_HEADER = 'ERR_EMPTY_HEADER';
 csvjson.WARN_EMPTY_ROWS = 'WARN_EMPTY_ROWS';
 
@@ -159,6 +162,9 @@ csvjson.prototype = (function() {
 
             //Initializations.
             var errors = {};
+            errors[csvjson.ERR_COUNTER] = 0;
+            errors[csvjson.ERR_EMPTY_HEADER] = 0;
+
             var warnings = { };
             warnings[csvjson.WARN_EMPTY_ROWS] = 0;
 
@@ -170,6 +176,7 @@ csvjson.prototype = (function() {
 
             //First row is the header.
             while (rows[startIndex].trim().length == 0) {
+                errors[csvjson.ERR_COUNTER]++;
                 errors[csvjson.ERR_EMPTY_HEADER]++;
                 startIndex++;
             }
