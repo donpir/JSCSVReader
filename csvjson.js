@@ -202,6 +202,13 @@ csvjson.prototype = (function() {
             }//EndFor.
 
             return { fields: fields, records: records, errors: errors, warnings: warnings };
+        },//EndFunction.
+
+        extractListOfErrors: function (jsonDataset) {
+            var listOfMessages = [];
+            if (jsonDataset.errors[csvjson.ERR_EMPTY_HEADER] > 0)
+                listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check the first row is empty." });
+            return listOfMessages;
         }//EndFunction.
     };
 

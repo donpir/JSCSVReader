@@ -146,6 +146,13 @@ csvjson.prototype = (function() {
         return fields;
     };//EndFunction.
 
+    var _extractListOfErrorsMessages =  function (errors, warnings) {
+        var listOfMessages = [];
+        if (errors[csvjson.ERR_EMPTY_HEADER] > 0)
+            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check the first row is empty." });
+        return listOfMessages;
+    };//EndFunction.
+
     return {
         constructor: csvjson,
 
@@ -201,7 +208,10 @@ csvjson.prototype = (function() {
                 records.push(jsonRow);
             }//EndFor.
 
-            return { fields: fields, records: records, errors: errors, warnings: warnings };
+
+            var listOfMessages =  _extractListOfErrorsMessages(errors, warnings);
+
+            return { fields: fields, records: records, errors: listOfMessages };
         }//EndFunction.
     };
 
