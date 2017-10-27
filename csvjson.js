@@ -28,9 +28,11 @@ function csvjson() {
 csvjson.EXP_ROW_SEPARATOR = /\r\n|\r|\n/g;
 
 //KEYS.
-csvjson.ERR_COUNTER = 'ERR_COUNTER';
-csvjson.ERR_EMPTY_HEADER = 'ERR_EMPTY_HEADER';
-csvjson.WARN_EMPTY_ROWS = 'WARN_EMPTY_ROWS';
+csvjson.ERR_COUNTER             = 'ERR_COUNTER'; //A counter to count the total errors.
+csvjson.ERR_EMPTY_HEADER        = 'ERR_EMPTY_HEADER'; //There is no header, the first row is empty.
+csvjson.ERR_EMPTY_HEADER_CELLS  = 'ERR_EMPTY_HEADER_CELLS'; //The header has empty cells.
+csvjson.ERR_EMPTY_ROWS          = 'ERR_EMPTY_ROWS';
+csvjson.WARN_EMPTY_ROW_AT_THE_END = 'WARN_EMPTY_ROW_AT_THE_END';
 
 csvjson.Split = function(line, COL_SEPARATOR) {
     //var COL_SEPARATOR = typeof colseparator == 'undefined' ? ',' : colseparator;
@@ -93,10 +95,22 @@ csvjson.Split = function(line, COL_SEPARATOR) {
 
 csvjson.RecogniseCSVSeparator = function(rows) {
 
+    /**
+     * Try to split the rows (array of strings) in input using the provided separator
+     * on the first twenty rows; returns true or false whether it is achievable or not.
+     * @param rows
+     * @param colsep
+     * @returns {boolean}
+     */
     var tryToSplit = function (rows, colsep) {
         var numCols = -1;
-        for (var i=1; i<rows.length && i<10; i++) {
+        for (var i=1; i<rows.length && i<20; i++) {
             var _row = rows[i].trim();
+
+            //The row is empty so we jump it. Note that we do not handle
+            //here the empty row, but we will do when parsing the whole CSV file.
+            if (_row.length == 0) continue;
+
             var cells = csvjson.Split(_row, colsep);
             var rowNumCols = cells.length;
 
@@ -117,12 +131,12 @@ csvjson.RecogniseCSVSeparator = function(rows) {
 
     //Try to use the ";" character as separator.
     var SEPARATOR = ';';
-    var foundSparator = tryToSplit(rows, SEPARATOR);
-    if (foundSparator) return SEPARATOR;
+    var foundSeparator = tryToSplit(rows, SEPARATOR);
+    if (foundSeparator) return SEPARATOR;
 
     SEPARATOR = ',';
-    foundSparator = tryToSplit(rows, SEPARATOR);
-    if (foundSparator) return SEPARATOR;
+    foundSeparator = tryToSplit(rows, SEPARATOR);
+    if (foundSeparator) return SEPARATOR;
 
     throw "Cannot infer the CSV column separator.";
 };//EndFunction.
@@ -161,12 +175,16 @@ csvjson.prototype = (function() {
             var startIndex = 0;
 
             //Initializations.
-            var errors = {};
+            var errors = [];
             errors[csvjson.ERR_COUNTER] = 0;
             errors[csvjson.ERR_EMPTY_HEADER] = 0;
+            errors[csvjson.ERR_EMPTY_ROWS] = 0;
+            errors[csvjson.ERR_EMPTY_HEADER_CELLS] = 0;
 
-            var warnings = { };
-            warnings[csvjson.WARN_EMPTY_ROWS] = 0;
+            var warnings = [];
+            warnings[csvjson.WARN_EMPTY_ROW_AT_THE_END] = 0;
+
+            var listOfMessages = [];
 
             if (typeof rowSeparator === 'undefined')
                 rowSeparator = csvjson.EXP_ROW_SEPARATOR;
@@ -178,13 +196,36 @@ csvjson.prototype = (function() {
             while (rows[startIndex].trim().length == 0) {
                 errors[csvjson.ERR_COUNTER]++;
                 errors[csvjson.ERR_EMPTY_HEADER]++;
+                listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check whether the first row is empty." });
                 startIndex++;
             }
             fields = _processHeader(rows[startIndex], separator);
 
+            //Checks whether the fields are empty or not.
+            for (var i=0; i<fields.length; i++) {
+                var _field = fields[i];
+                if (_field.name.trim().length == 0) {//Empty header.
+                    errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
+                    if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
+                        listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column without the name."});
+                }
+            }//EndFor.
+
             //Loop through the dataset's rows.
             for (var i=startIndex+1; i<rows.length; i++) {
                 var row = rows[i];
+
+                //Check whether the row is empty.
+                if (row.trim().length == 0) {
+                    errors[csvjson.ERR_COUNTER]++;
+                    if (i == rows.length -1) {
+                        warnings[csvjson.WARN_EMPTY_ROW_AT_THE_END]++;
+                    } else {
+                        errors[csvjson.ERR_EMPTY_ROWS]++;
+                        listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_ROWS, description: "The csv has an empty row. Check row number " + i + "."});
+                    }
+                }
+
                 var values = csvjson.Split(row, separator);
                 var jsonRow = {};
 
@@ -201,15 +242,13 @@ csvjson.prototype = (function() {
                 records.push(jsonRow);
             }//EndFor.
 
-            return { fields: fields, records: records, errors: errors, warnings: warnings };
+            return { fields: fields, records: records, errors: errors, warnings: warnings, humanReadableErrors: listOfMessages };
         },//EndFunction.
 
         extractListOfErrors: function (jsonDataset) {
-            var listOfMessages = [];
-            if (jsonDataset.errors[csvjson.ERR_EMPTY_HEADER] > 0)
-                listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check the first row is empty." });
-            return listOfMessages;
+            return jsonDataset.humanReadableErrors;
         }//EndFunction.
+
     };
 
 })();
