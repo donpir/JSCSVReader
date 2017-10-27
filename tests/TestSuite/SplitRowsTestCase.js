@@ -114,3 +114,24 @@ function runTestDataset05(dataset) {
     });
 }
 
+////////////////////////////////////////////////////////////////
+/// DATASET 06 WRONG COLUMNS
+///
+
+httpGetAsync("../datasets/dataset06_wrongcols.csv", runTestDataset06);
+function runTestDataset06(dataset) {
+    QUnit.test("csvjson Split TestCase on Dataset 06", function(assert) {
+        assert.notEqual(dataset, null, "Dataset correctly loaded.");
+        var rows = dataset.split(rowSeparator);
+        assert.equal(rows.length, 6, "Number of rows match.");
+        assert.equal(rows[0].length, 38, "Check the length of the first row.");
+
+        //Infer the SEPARATOR.
+        try {
+            var separator = csvjson.RecogniseCSVSeparator(rows);
+            assert.notOk('CSV should have a problem.');
+        } catch (err) {
+            /*OK it has an error. */
+        }
+    });
+}
