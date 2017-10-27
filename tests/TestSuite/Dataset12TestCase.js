@@ -41,8 +41,8 @@ function runTests(textualContent) {
         var reader = new csvjson();
         var jsonDataset = reader.read(dataset);
 
-        assert.equal(jsonDataset.errors[csvjson.ERR_EMPTY_ROWS], 3);
-        assert.ok(jsonDataset.errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 5);
+        assert.equal(jsonDataset._errors[csvjson.ERR_EMPTY_ROWS], 3);
+        assert.ok(jsonDataset._errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 5);
         debugger;
 
         //assert.notEqual(jsonDataset, null, "Dataset correctly read.");

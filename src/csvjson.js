@@ -33,6 +33,7 @@ csvjson.ERR_EMPTY_HEADER        = 'ERR_EMPTY_HEADER'; //There is no header, the 
 csvjson.ERR_EMPTY_HEADER_CELLS  = 'ERR_EMPTY_HEADER_CELLS'; //The header has empty cells.
 csvjson.ERR_EMPTY_ROWS          = 'ERR_EMPTY_ROWS';
 csvjson.WARN_EMPTY_ROW_AT_THE_END = 'WARN_EMPTY_ROW_AT_THE_END';
+csvjson.ERR_COL_NUMBER_MISMATCH = 'ERR_COL_NUMBER_MISMATCH';
 
 csvjson.Split = function(line, COL_SEPARATOR) {
     //var COL_SEPARATOR = typeof colseparator == 'undefined' ? ',' : colseparator;
@@ -104,7 +105,7 @@ csvjson.RecogniseCSVSeparator = function(rows) {
      */
     var tryToSplit = function (rows, colsep) {
         var numCols = -1;
-        for (var i=1; i<rows.length && i<20; i++) {
+        for (var i=0; i<rows.length && i<20; i++) {
             var _row = rows[i].trim();
 
             //The row is empty so we jump it. Note that we do not handle
@@ -190,65 +191,71 @@ csvjson.prototype = (function() {
                 rowSeparator = csvjson.EXP_ROW_SEPARATOR;
 
             var rows = csvContent.split(rowSeparator);
-            var separator = csvjson.RecogniseCSVSeparator(rows);
 
-            //First row is the header.
-            while (rows[startIndex].trim().length == 0) {
+            //Recognizes the separator.
+            var separator = undefined;
+            try {
+                separator = csvjson.RecogniseCSVSeparator(rows);
+            } catch (err) {
                 errors[csvjson.ERR_COUNTER]++;
-                errors[csvjson.ERR_EMPTY_HEADER]++;
-                listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check whether the first row is empty." });
-                startIndex++;
+                errors[csvjson.ERR_COL_NUMBER_MISMATCH]++;
+                listOfMessages.push({ type: 'error', code: csvjson.ERR_COL_NUMBER_MISMATCH, description: "Rows do not have the same number of columns or the separator is not a semicolon or comma." });
             }
-            fields = _processHeader(rows[startIndex], separator);
 
-            //Checks whether the fields are empty or not.
-            for (var i=0; i<fields.length; i++) {
-                var _field = fields[i];
-                if (_field.name.trim().length == 0) {//Empty header.
-                    errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
-                    if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
-                        listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column without the name."});
-                }
-            }//EndFor.
-
-            //Loop through the dataset's rows.
-            for (var i=startIndex+1; i<rows.length; i++) {
-                var row = rows[i];
-
-                //Check whether the row is empty.
-                if (row.trim().length == 0) {
+            if (typeof separator !== 'undefined') {
+                //First row is the header.
+                while (rows[startIndex].trim().length == 0) {
                     errors[csvjson.ERR_COUNTER]++;
-                    if (i == rows.length -1) {
-                        warnings[csvjson.WARN_EMPTY_ROW_AT_THE_END]++;
-                    } else {
-                        errors[csvjson.ERR_EMPTY_ROWS]++;
-                        listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_ROWS, description: "The csv has an empty row. Check row number " + i + "."});
+                    errors[csvjson.ERR_EMPTY_HEADER]++;
+                    listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check whether the first row is empty." });
+                    startIndex++;
+                }
+                fields = _processHeader(rows[startIndex], separator);
+
+                //Checks whether the fields are empty or not.
+                for (var i=0; i<fields.length; i++) {
+                    var _field = fields[i];
+                    if (_field.name.trim().length == 0) {//Empty header.
+                        errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
+                        if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
+                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column without the name."});
                     }
-                }
+                }//EndFor.
 
-                var values = csvjson.Split(row, separator);
-                var jsonRow = {};
+                //Loop through the dataset's rows.
+                for (var i=startIndex+1; i<rows.length; i++) {
+                    var row = rows[i];
 
-                for (var j=0; j<values.length; j++) {
-                    var value = values[j];
+                    //Check whether the row is empty.
+                    if (row.trim().length == 0) {
+                        errors[csvjson.ERR_COUNTER]++;
+                        if (i == rows.length -1) {
+                            warnings[csvjson.WARN_EMPTY_ROW_AT_THE_END]++;
+                        } else {
+                            errors[csvjson.ERR_EMPTY_ROWS]++;
+                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_ROWS, description: "The csv has an empty row. Check row number " + i + "."});
+                        }
+                    }
 
-                    if (typeof fields[j] == 'undefined')
-                        debugger;
+                    var values = csvjson.Split(row, separator);
+                    var jsonRow = {};
 
-                    var key = fields[j].name;
-                    jsonRow[key] = value;
-                }
+                    for (var j=0; j<values.length; j++) {
+                        var value = values[j];
 
-                records.push(jsonRow);
-            }//EndFor.
+                        if (typeof fields[j] == 'undefined')
+                            debugger;
 
-            return { fields: fields, records: records, errors: errors, warnings: warnings, humanReadableErrors: listOfMessages };
-        },//EndFunction.
+                        var key = fields[j].name;
+                        jsonRow[key] = value;
+                    }
 
-        extractListOfErrors: function (jsonDataset) {
-            return jsonDataset.humanReadableErrors;
+                    records.push(jsonRow);
+                }//EndFor.
+            }//EndIF.
+
+            return { fields: fields, records: records, errors: listOfMessages, _errors: errors, _warnings: warnings };
         }//EndFunction.
-
     };
 
 })();

@@ -115,8 +115,8 @@ csvjson.RecogniseCSVSeparator = function(rows) {
             var cells = csvjson.Split(_row, colsep);
             var rowNumCols = cells.length;
 
-            if (_row.trim().lastIndexOf(colsep) === _row.length-1)
-                rowNumCols++;
+            /*if (_row.trim().lastIndexOf(colsep) === _row.length-1)
+                rowNumCols++;*/
 
             if (numCols == -1 && rowNumCols > 1) {
                 numCols = rowNumCols;
@@ -159,6 +159,15 @@ csvjson.prototype = (function() {
         });
 
         return fields;
+    };//EndFunction.
+
+    var _extractListOfErrorsMessages =  function (errors, warnings) {
+        var listOfMessages = [];
+        if (errors[csvjson.ERR_EMPTY_HEADER] > 0)
+            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check the first row is empty." });
+        if (errors[csvjson.ERR_COL_NUMBER_MISMATCH] > 0)
+            listOfMessages.push({ type: 'error', code: csvjson.ERR_COL_NUMBER_MISMATCH, description: "Rows do not have the same number of columns or the separator is not a semicolon or comma." });
+        return listOfMessages;
     };//EndFunction.
 
     return {
@@ -254,7 +263,10 @@ csvjson.prototype = (function() {
                 }//EndFor.
             }//EndIF.
 
-            return { fields: fields, records: records, errors: listOfMessages, _errors: errors, _warnings: warnings };
+
+            var listOfMessages =  _extractListOfErrorsMessages(errors, warnings);
+
+            return { fields: fields, records: records, errors: listOfMessages };
         }//EndFunction.
     };
 
