@@ -218,7 +218,7 @@ csvjson.prototype = (function() {
                     if (_field.name.trim().length == 0) {//Empty header.
                         errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
                         if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
-                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column with an empty name."});
+                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column with an empty caption."});
                     }
                 }//EndFor.
 
