@@ -218,7 +218,7 @@ csvjson.prototype = (function() {
                     if (_field.name.trim().length == 0) {//Empty header.
                         errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
                         if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
-                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column without the name."});
+                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column with an empty name."});
                     }
                 }//EndFor.
 
@@ -233,7 +233,7 @@ csvjson.prototype = (function() {
                             warnings[csvjson.WARN_EMPTY_ROW_AT_THE_END]++;
                         } else {
                             errors[csvjson.ERR_EMPTY_ROWS]++;
-                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_ROWS, description: "The csv has an empty row. Check row number " + i + "."});
+                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_ROWS, description: "The csv has an empty row. Check row number " + (i+1) + "."});
                         }
                     }
 
