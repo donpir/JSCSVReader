@@ -3,4 +3,7 @@ A JavaScript library to parse csv files and trasform the content in JSON Format.
 
 In addition, the library embeds a set of heuristics to check whether the csv input is well-formed. This feature is particularly useful for applications that need to import well-formed csv files. The last version of the library checks and give a feedback for:
 
-* Empty first row (empty header)
+* Empty first row (empty header);
+* Empty rows within the CSV file;
+* Header (first row) without names;
+* Rows with different number of columns.
