@@ -28,12 +28,13 @@ function csvjson() {
 csvjson.EXP_ROW_SEPARATOR = /\r\n|\r|\n/g;
 
 //KEYS.
-csvjson.ERR_COUNTER             = 'ERR_COUNTER'; //A counter to count the total errors.
-csvjson.ERR_EMPTY_HEADER        = 'ERR_EMPTY_HEADER'; //There is no header, the first row is empty.
-csvjson.ERR_EMPTY_HEADER_CELLS  = 'ERR_EMPTY_HEADER_CELLS'; //The header has empty cells.
-csvjson.ERR_EMPTY_ROWS          = 'ERR_EMPTY_ROWS';
-csvjson.WARN_EMPTY_ROW_AT_THE_END = 'WARN_EMPTY_ROW_AT_THE_END';
-csvjson.ERR_COL_NUMBER_MISMATCH = 'ERR_COL_NUMBER_MISMATCH';
+csvjson.ERR_COUNTER                 = 'ERR_COUNTER'; //A counter to count the total errors.
+csvjson.ERR_EMPTY_HEADER            = 'ERR_EMPTY_HEADER'; //There is no header, the first row is empty.
+csvjson.ERR_EMPTY_HEADER_CELLS      = 'ERR_EMPTY_HEADER_CELLS'; //The header has empty cells.
+csvjson.ERR_EMPTY_ROWS              = 'ERR_EMPTY_ROWS';
+csvjson.WARN_EMPTY_ROW_AT_THE_END   = 'WARN_EMPTY_ROW_AT_THE_END';
+csvjson.WARN_DUPLICATED_COLUMN_NAME = 'WARN_DUPLICATED_COLUMN_NAME';
+csvjson.ERR_COL_NUMBER_MISMATCH     = 'ERR_COL_NUMBER_MISMATCH';
 
 csvjson.Split = function(line, COL_SEPARATOR) {
     //var COL_SEPARATOR = typeof colseparator == 'undefined' ? ',' : colseparator;
@@ -184,8 +185,10 @@ csvjson.prototype = (function() {
 
             var warnings = [];
             warnings[csvjson.WARN_EMPTY_ROW_AT_THE_END] = 0;
+            warnings[csvjson.WARN_DUPLICATED_COLUMN_NAME] = 0;
 
-            var listOfMessages = [];
+            var listOfErrors = [];
+            var listOfWarnings = [];
 
             if (typeof rowSeparator === 'undefined')
                 rowSeparator = csvjson.EXP_ROW_SEPARATOR;
@@ -199,7 +202,7 @@ csvjson.prototype = (function() {
             } catch (err) {
                 errors[csvjson.ERR_COUNTER]++;
                 errors[csvjson.ERR_COL_NUMBER_MISMATCH]++;
-                listOfMessages.push({ type: 'error', code: csvjson.ERR_COL_NUMBER_MISMATCH, description: "Rows do not have the same number of columns or the separator is not a semicolon or comma." });
+                listOfErrors.push({ type: 'error', code: csvjson.ERR_COL_NUMBER_MISMATCH, description: "Rows do not have the same number of columns or the separator is not a semicolon or comma." });
             }
 
             if (typeof separator !== 'undefined') {
@@ -207,18 +210,27 @@ csvjson.prototype = (function() {
                 while (rows[startIndex].trim().length == 0) {
                     errors[csvjson.ERR_COUNTER]++;
                     errors[csvjson.ERR_EMPTY_HEADER]++;
-                    listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check whether the first row is empty." });
+                    listOfErrors.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check whether the first row is empty." });
                     startIndex++;
                 }
                 fields = _processHeader(rows[startIndex], separator);
 
-                //Checks whether the fields are empty or not.
+                //Checks whether the fields have EMPTY CAPTIONS and CAPTION DUPLICATES.
+                var _duplicateCaptions = {};
                 for (var i=0; i<fields.length; i++) {
                     var _field = fields[i];
                     if (_field.name.trim().length == 0) {//Empty header.
                         errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
                         if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
-                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column with an empty caption."});
+                            listOfErrors.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column with an empty caption."});
+                    } else {
+                        //CHECK DUPLICATES
+                        if (_duplicateCaptions.hasOwnProperty(_field.name.trim())) {
+                            warnings[csvjson.WARN_DUPLICATED_COLUMN_NAME]++;
+                            listOfWarnings.push({ type: 'warning', code: csvjson.WARN_DUPLICATED_COLUMN_NAME, description: "Duplicated column caption " + _field.name.trim()});
+                        } else {
+                            _duplicateCaptions[_field.name.trim()] = 1;
+                        }
                     }
                 }//EndFor.
 
@@ -233,7 +245,7 @@ csvjson.prototype = (function() {
                             warnings[csvjson.WARN_EMPTY_ROW_AT_THE_END]++;
                         } else {
                             errors[csvjson.ERR_EMPTY_ROWS]++;
-                            listOfMessages.push({ type: 'error', code: csvjson.ERR_EMPTY_ROWS, description: "The csv has an empty row. Check row number " + (i+1) + "."});
+                            listOfErrors.push({ type: 'error', code: csvjson.ERR_EMPTY_ROWS, description: "The csv has an empty row. Check row number " + (i+1) + "."});
                         }
                     }
 
@@ -248,13 +260,13 @@ csvjson.prototype = (function() {
 
                         var key = fields[j].name;
                         jsonRow[key] = value;
-                    }
+                    }//EndFor.
 
                     records.push(jsonRow);
                 }//EndFor.
             }//EndIF.
 
-            return { fields: fields, records: records, errors: listOfMessages, _errors: errors, _warnings: warnings };
+            return { fields: fields, records: records, errors: listOfErrors, warnings: listOfWarnings, _errors: errors, _warnings: warnings };
         }//EndFunction.
     };
 
