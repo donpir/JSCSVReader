@@ -6,4 +6,8 @@ In addition, the library embeds a set of heuristics to check whether the csv inp
 * Empty first row (empty header);
 * Empty rows within the CSV file;
 * Header (first row) without names;
-* Rows with different number of columns.
+* Rows with different number of columns;
+
+Warnings:
+ * Header with duplicated column captions.
+
