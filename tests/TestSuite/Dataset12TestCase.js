@@ -42,7 +42,7 @@ function runTests(textualContent) {
         var jsonDataset = reader.read(dataset);
 
         assert.equal(jsonDataset._errors[csvjson.ERR_EMPTY_ROWS], 3);
-        assert.ok(jsonDataset._errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 3);
+        assert.ok(jsonDataset._errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 2);
         assert.equal(jsonDataset._warnings[csvjson.WARN_DUPLICATED_COLUMN_NAME], 1);
         debugger;
 
