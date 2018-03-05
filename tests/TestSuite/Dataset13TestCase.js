@@ -39,7 +39,7 @@ function runTests(textualContent) {
 
         var line = '"topo_int,C,120","topo_rid,C,40","propr,C,10","lung_m,N,6,0","id_strada,N,14,0","longitude,N,9,6","latitude,N,9,6"';
         var values = csvjson.Split(line, ',');
-        assert.equal(values.length, 1);
+        assert.equal(values.length, 7);
 
 
         debugger;

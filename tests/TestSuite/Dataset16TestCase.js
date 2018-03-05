@@ -29,20 +29,19 @@ var httpGetAsync = function(theUrl, callback) {
     xhttp.send(null);
 };//EndFunction.
 
-httpGetAsync("../datasets/dataset14_onecol_error.csv", runTests);
+httpGetAsync("../datasets/dataset16_quotes.csv", runTests);
 
 function runTests(textualContent) {
     var dataset = textualContent;
 
-    QUnit.test( "dataset14", function( assert ) {
+    QUnit.test( "dataset15", function( assert ) {
         assert.notEqual(dataset, null, "Dataset correctly loaded.");
 
         //Read the CSV Content.
         var reader = new csvjson();
         var jsonDataset = reader.read(dataset);
 
-        assert.ok(jsonDataset.errors.length == 1);
-        assert.ok(jsonDataset.errors[0].description.indexOf("any separator") > 0);
+        debugger;
 
         /*assert.equal(jsonDataset._errors[csvjson.ERR_EMPTY_ROWS], 3);
         assert.ok(jsonDataset._errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 2);

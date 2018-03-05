@@ -43,7 +43,7 @@ function runTests(textualContent) {
 
         assert.notEqual(jsonDataset, null, "Dataset correctly read.");
         debugger;
-        assert.equal(jsonDataset.fields.length, 6, "The dataset has the expected number of columns.");
+        assert.equal(jsonDataset.fields.length, 5, "The dataset has the expected number of columns.");
         assert.equal(jsonDataset.records.length, 46, "The dataset has the expected number of rows.");
     });
 

@@ -95,6 +95,18 @@ csvjson.Split = function(line, COL_SEPARATOR) {
     return cells;
 };//EndFunction.
 
+csvjson.CannotInferSeparatorException = function (message) {
+    this.message = message
+    // Use V8's native method if available, otherwise fallback
+    if ("captureStackTrace" in Error)
+        Error.captureStackTrace(this, csvjson.CannotInferSeparatorException);
+    else
+        this.stack = (new Error()).stack;
+};
+csvjson.CannotInferSeparatorException.prototype = Object.create(Error.prototype);
+csvjson.CannotInferSeparatorException.prototype.name = "CannotInferSeparatorException";
+csvjson.CannotInferSeparatorException.prototype.constructor = csvjson.CannotInferSeparatorException;
+
 csvjson.RecogniseCSVSeparator = function(rows) {
 
     /**
@@ -140,10 +152,25 @@ csvjson.RecogniseCSVSeparator = function(rows) {
     foundSeparator = tryToSplit(rows, SEPARATOR);
     if (foundSeparator) return SEPARATOR;
 
-    throw "Cannot infer the CSV column separator.";
+    if (rows[0].indexOf(';') < 0 && rows[0].indexOf(',') < 0)
+        throw new csvjson.CannotInferSeparatorException("The file does not have any separator (; or ,).");
+
+    throw new csvjson.CannotInferSeparatorException("Rows do not have the same number of columns.");
 };//EndFunction.
 
+
 csvjson.prototype = (function() {
+
+    var _hashCode = function() {
+        var hash = 0, i, chr;
+        if (this.length === 0) return hash;
+        for (i = 0; i < this.length; i++) {
+            chr   = this.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    };//EndFunction.
 
     var _processHeader = function(header, colseparator) {
         if (colseparator == null || typeof colseparator == 'undefined')
@@ -155,6 +182,17 @@ csvjson.prototype = (function() {
         headerNames.forEach( function(item, index) {
             var name = item.replace(/\s/, "_");
             var field = { name: name, label: item, index: index };
+
+            //When the label is empty and it is the last in the header,
+            //it does not adds the field to header.
+            //if (index == headerNames.length - 1 && field.label.trim().length == 0) return;
+
+            //When the column has an empty label, so we need to provide a random name ... that is it's key
+            //otherwise there will be an issue for the algorithm that analyses the CSV, .
+            if (field.name.trim().length == 0)
+                field.name = name = "empty_" + _hashCode(); //Generate a random name.
+
+            //It saves the field.
             fields.push(field);
             fields[name] = field;
         });
@@ -202,34 +240,71 @@ csvjson.prototype = (function() {
             } catch (err) {
                 errors[csvjson.ERR_COUNTER]++;
                 errors[csvjson.ERR_COL_NUMBER_MISMATCH]++;
-                listOfErrors.push({ type: 'error', code: csvjson.ERR_COL_NUMBER_MISMATCH, description: "Rows do not have the same number of columns or the separator is not a semicolon or comma." });
+                listOfErrors.push({ type: 'error', code: csvjson.ERR_COL_NUMBER_MISMATCH, description: err.message });
             }
 
             if (typeof separator !== 'undefined') {
-                //First row is the header.
+                //First row is the header; check whether the header is completly empty.
                 while (rows[startIndex].trim().length == 0) {
                     errors[csvjson.ERR_COUNTER]++;
                     errors[csvjson.ERR_EMPTY_HEADER]++;
                     listOfErrors.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER, description: "The csv has an empty header. Check whether the first row is empty." });
                     startIndex++;
                 }
+
                 fields = _processHeader(rows[startIndex], separator);
 
-                //Checks whether the fields have EMPTY CAPTIONS and CAPTION DUPLICATES.
+                //When the last label of the header is empty it must check whether
+                // * it is an empty label of the header; or * simply all the column is empty.
+                if (fields.length > 0 && fields[fields.length-1].label.trim().length == 0) {
+                    //The last label is empty, checks all the rows.
+                    var bEmptyCol = true;
+                    for (var i = startIndex + 1; i < rows.length && bEmptyCol; i++) {
+                        var row = rows[i];
+                        const iLIOSeparator = row.lastIndexOf(separator);
+                        if (iLIOSeparator < 0) continue;
+                        if (iLIOSeparator == row.length - 1) continue;
+
+                        var lastCellValue = row.substr(iLIOSeparator + 1).trim();
+                        if (lastCellValue.length > 0) bEmptyCol = false;
+                    }//EndFor.
+
+                    debugger;
+                    if (bEmptyCol) {//The column is empty so removes the fields from the array.
+                        const _tFieldIndex = fields.length - 1;
+                        const _tFieldName = fields[_tFieldIndex].name;
+                        delete fields[_tFieldName];
+                        fields.splice(fields.length - 1, 1);
+                    }
+                }
+
+                //Checks whether the fields have EMPTY CAPTIONS (field.label) and CAPTION DUPLICATES (field.label).
                 var _duplicateCaptions = {};
                 for (var i=0; i<fields.length; i++) {
                     var _field = fields[i];
-                    if (_field.name.trim().length == 0) {//Empty header.
-                        errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
-                        if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
-                            listOfErrors.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column with an empty caption."});
+                    if (_field.label.trim().length == 0) {//Empty label in the header.
+
+                        //There is an empty label in the header, it is not the last one.
+                        //if (i < fields.length - 1) {
+                            errors[csvjson.ERR_EMPTY_HEADER_CELLS]++;
+                            if (errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 1)
+                                listOfErrors.push({ type: 'error', code: csvjson.ERR_EMPTY_HEADER_CELLS, description: "The header has a column with an empty caption."});
+                            //continue;
+                        //}
+
+                        //When the last label of the header is empty it must check whether
+                        // * it is an empty label of the header; or * simply all the column is empty.
+                        /*if (i == fields.length - 1) {//Last column of the CSV.
+                            //TODO
+                        }*/
+
                     } else {
                         //CHECK DUPLICATES
                         if (_duplicateCaptions.hasOwnProperty(_field.name.trim())) {
                             warnings[csvjson.WARN_DUPLICATED_COLUMN_NAME]++;
                             listOfWarnings.push({ type: 'warning', code: csvjson.WARN_DUPLICATED_COLUMN_NAME, description: "Duplicated column caption " + _field.name.trim()});
                         } else {
-                            _duplicateCaptions[_field.name.trim()] = 1;
+                            _duplicateCaptions[_field.label.trim()] = 1;
                         }
                     }
                 }//EndFor.
