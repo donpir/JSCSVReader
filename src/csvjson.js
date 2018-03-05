@@ -19,7 +19,7 @@
  ** License: http://www.gnu.org/licenses/gpl.html GPL version 3 or higher
  **
  ** LIST OF RELEASES:
- **     csvjson v0.1.5 - 31 October 2017
+ **     csvjson v0.1.6 - 05 March 2018
  **/
 
 function csvjson() {
