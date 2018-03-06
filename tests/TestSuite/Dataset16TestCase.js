@@ -34,14 +34,46 @@ httpGetAsync("../datasets/dataset16_quotes.csv", runTests);
 function runTests(textualContent) {
     var dataset = textualContent;
 
-    QUnit.test( "dataset15", function( assert ) {
+    QUnit.test( "dataset16", function( assert ) {
         assert.notEqual(dataset, null, "Dataset correctly loaded.");
 
-        //Read the CSV Content.
-        var reader = new csvjson();
-        var jsonDataset = reader.read(dataset);
+        var dummy1 = '1a;2a;content';
+        var dummy2 = '1a;2a;"content"';
+        var dummy3 = '1a;2a;"content1a\r\n\r\ncontent2a"';
+        var dummy4 = '\r\n1a;2a;3a';
+
+        var counter = dummy1.countChars('\"');
+        assert.ok(counter == 0);
+        var counter = dummy2.countChars('\"');
+        assert.ok(counter == 2);
+        var counter = dummy3.countChars('\"');
+        assert.ok(counter == 2);
+
+        //Test dummy 1.
+        var rows = csvjson.SplitRows(dummy1);
+        assert.ok(rows.length == 1);
+
+        //Test dummy 2.
+        var rows = csvjson.SplitRows(dummy2);
+        assert.ok(rows.length == 1);
+
+        //Test dummy 3.
+        var rows = csvjson.SplitRows(dummy3);
+        assert.ok(rows.length == 1);
 
         debugger;
+
+        //Test dummy 4.
+        var rows = csvjson.SplitRows(dummy4);
+        assert.ok(rows.length == 2);
+
+
+        var rows = csvjson.SplitRows(dataset);
+        assert.ok(rows.length == 25);
+
+        //Read the CSV Content.
+        //var reader = new csvjson();
+        //var jsonDataset = reader.read(dataset);
 
         /*assert.equal(jsonDataset._errors[csvjson.ERR_EMPTY_ROWS], 3);
         assert.ok(jsonDataset._errors[csvjson.ERR_EMPTY_HEADER_CELLS] == 2);

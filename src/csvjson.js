@@ -36,6 +36,29 @@ csvjson.WARN_EMPTY_ROW_AT_THE_END   = 'WARN_EMPTY_ROW_AT_THE_END';
 csvjson.WARN_DUPLICATED_COLUMN_NAME = 'WARN_DUPLICATED_COLUMN_NAME';
 csvjson.ERR_COL_NUMBER_MISMATCH     = 'ERR_COL_NUMBER_MISMATCH';
 
+//Augmented String prototype.
+String.prototype.regexIndexOf = function(regex, startpos) {
+    var indexOf = this.substring(startpos || 0).search(regex);
+    return (indexOf >= 0) ? (indexOf + (startpos || 0)) : indexOf;
+};
+
+//Augmented String prototype.
+// startIndex included
+// stopIndex included
+String.prototype.countChars = function(char, startIndex, stopIndex) {
+    var count = 0;
+
+    if (typeof startIndex === 'undefined') startIndex = 0;
+    if (typeof stopIndex === 'undefined') stopIndex = this.length;
+
+    for (var i=startIndex; i<stopIndex; i++) {
+        var c = this.charAt(i);
+        if (c === char) count++;
+    }//EndFor.
+
+    return count;
+};
+
 csvjson.Split = function(line, COL_SEPARATOR) {
     //var COL_SEPARATOR = typeof colseparator == 'undefined' ? ',' : colseparator;
     var VAL_SEPARATOR = '"';
@@ -158,6 +181,43 @@ csvjson.RecogniseCSVSeparator = function(rows) {
     throw new csvjson.CannotInferSeparatorException("Rows do not have the same number of columns.");
 };//EndFunction.
 
+csvjson.SplitRows = function (text) {
+    var prevNewLine = 0;
+    var lastNewLine = -1;
+    var rows = [];
+    var line = "";
+
+    //Initialisation.
+    lastNewLine = text.regexIndexOf(csvjson.EXP_ROW_SEPARATOR, prevNewLine);
+    if (lastNewLine < 0) rows.push(text); //Base case: no newline found, so it is a only one line.
+    //if (lastNewLine == 0) //Special case: new line at beginning.
+    //    lastNewLine += (text.charAt(lastNewLine) == '\r' && text.charAt(lastNewLine+1) == '\n') ? 2 : 1;
+
+    while (lastNewLine <= text.length && prevNewLine <= lastNewLine) {
+        line += text.substr(prevNewLine, lastNewLine - prevNewLine);
+        var numQuotes = line.countChars('"');
+
+        if (numQuotes % 2 == 0) {
+            rows.push(line);
+            line = "";
+            lastNewLine += (text.charAt(lastNewLine) == '\r' && text.charAt(lastNewLine+1) == '\n') ? 2 : 1;
+            prevNewLine = lastNewLine;
+        } else {
+            prevNewLine = lastNewLine;
+            lastNewLine += (text.charAt(lastNewLine) == '\r' && text.charAt(lastNewLine+1) == '\n') ? 2 : 1;
+        }
+
+        lastNewLine = text.regexIndexOf(csvjson.EXP_ROW_SEPARATOR, lastNewLine);
+
+        if (lastNewLine < 0) lastNewLine = text.length; //Special case: reached the end of the file.
+        if (prevNewLine == lastNewLine) {//Special case: empty line.
+            lastNewLine += (text.charAt(lastNewLine) == '\r' && text.charAt(lastNewLine+1) == '\n') ? 2 : 1;
+        }
+
+    }//EndWhile.
+
+    return rows;
+};//EndFunction.
 
 csvjson.prototype = (function() {
 
@@ -231,7 +291,14 @@ csvjson.prototype = (function() {
             if (typeof rowSeparator === 'undefined')
                 rowSeparator = csvjson.EXP_ROW_SEPARATOR;
 
-            var rows = csvContent.split(rowSeparator);
+            //Perform the split of the file.
+            var rows = [];
+            try {
+                rows = csvjson.SplitRows(csvContent);
+            } catch (e) {
+                console.log(e);
+                rows = csvContent.split(rowSeparator);
+            }
 
             //Recognizes the separator.
             var separator = undefined;

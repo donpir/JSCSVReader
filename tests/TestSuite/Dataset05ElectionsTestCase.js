@@ -37,15 +37,18 @@ function runTests(textualContent) {
     QUnit.test( "dataset05", function( assert ) {
         assert.notEqual(dataset, null, "Dataset correctly loaded.");
 
+        //Try to split the dataset content.
+        var rows = csvjson.SplitRows(dataset);
+        assert.ok(rows.length == 156);
+        debugger;
+
         //Read the CSV Content.
         var reader = new csvjson();
         var jsonDataset = reader.read(dataset);
 
-        debugger;
-
         assert.notEqual(jsonDataset, null, "Dataset correctly read.");
         assert.equal(jsonDataset.fields.length, 7, "The dataset has the expected number of columns.");
-        assert.equal(jsonDataset.records.length, 155, "The dataset has the expected number of rows.");
+        assert.equal(jsonDataset.records.length, 154, "The dataset has the expected number of rows.");
 
 
         debugger;
