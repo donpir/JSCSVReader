@@ -19,17 +19,23 @@ In brief, csvjson is NPM based, developed with a test-driven process (see qunit 
 
 The prefered way to install csvjson is by using npm. Assuming that you are in your project dir, run the following command:
 
-> npm install https://github.com/donpir/csvjson.git
+> npm install https://github.com/donpir/csvjson.git --save
 
 In order to check whether the installation was successful, open your package.json you should see the csvjson dependency ander the key "dependencies". Moreover check the content of dir node_modules, there should be a new dir named "csvjson". Well, I'm sure that worked fine until now!
 
-## update csvjson via npm
+### update csvjson via npm
 
 In order to update your local version of the libary with last version available on the git repository, run the following npm command:
 
 > npm update csvjson
 
+### unistall via npm
+
+> npm unistall csvjson --save
+
 ## how to use csvjson as ES6 module
+
+
 
 
 
