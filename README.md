@@ -9,5 +9,19 @@ The last version of the library checks and give a feedback for:
 * Empty rows within the CSV file;
 * Header (first row) without names;
 * Rows with different number of columns;
- * Header with duplicated column captions (warning).
+* Header with duplicated column captions (warning).
+
+
+## csvjson installation with npm 
+
+The prefered way to install csvjson is by using npm. Assuming that you are in your project dir, run the following command:
+
+> npm install https://github.com/donpir/csvjson.git
+
+In order to check whether the installation was successful, open your package.json you should see the csvjson dependency ander the key "dependencies". Moreover check the content of dir node_modules, there should be a new dir named "csvjson". Well, I'm sure that worked fine until now!
+
+## csvjson usage
+
+
+
 
