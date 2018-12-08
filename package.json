@@ -1,0 +1,22 @@
+{
+  "name": "csvjson",
+  "version": "0.1.7",
+  "description": "A js libary to convert a csv file in JSON format",
+  "main": "csvjson.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/donpir/csvjson.git"
+  },
+  "author": "Donato Pirozzi",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/donpir/csvjson/issues"
+  },
+  "homepage": "https://github.com/donpir/csvjson#readme"
+}
